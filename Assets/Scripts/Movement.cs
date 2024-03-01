@@ -75,7 +75,7 @@ public class Movement : MonoBehaviour
     void MovementOnX() //1 for right, -1 for left, 0 for nothing
     {
         float xAxis = Input.GetAxis("Horizontal");
-        currentXSpeed += moveSpeed * xAxis;
+        currentXSpeed += moveSpeed * xAxis * delta;
         if (currentXSpeed >= maxSpeed)
         {
             currentXSpeed = maxSpeed * xAxis;
@@ -98,13 +98,13 @@ public class Movement : MonoBehaviour
             direction = -1;
         }
 
-        if (currentXSpeed <= .005f && currentXSpeed >= -.005f)
+        if (currentXSpeed <= .05f && currentXSpeed >= -.05f)
         {
             currentXSpeed = 0;
         }
         else
         {
-            currentXSpeed -= moveSpeed * direction;
+            currentXSpeed -= moveSpeed * direction * delta;
         }
     }
 
@@ -112,7 +112,7 @@ public class Movement : MonoBehaviour
     {
         if (!onFloor)
         {
-            currentYSpeed -= gravity;
+            currentYSpeed -= gravity * delta;
             if(currentYSpeed <= -maxFallSpeed)
             {
                 currentYSpeed = -maxFallSpeed;
@@ -128,14 +128,14 @@ public class Movement : MonoBehaviour
     {
         if (onFloor && !jumping)
         {
-            transform.position = new Vector2(transform.position.x, transform.position.y + .0015f);
+            transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
             jumpStartTime = Time.time;
             jumping = true;
         }
         if (jumping && jumpStartTime + maxJumpDuration >= Time.time)
         {
-            currentYSpeed += jumpStaySpeed;
+            currentYSpeed += jumpStaySpeed * delta;
         }
     }
 

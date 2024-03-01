@@ -1137,13 +1137,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3be3528796af7694d851c1cfcb2ca422, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 0.1
+  moveSpeed: 3.5
   currentXSpeed: 0
-  maxSpeed: 0.8
-  gravity: 0.15
+  maxSpeed: 1
+  gravity: 3.5
   maxFallSpeed: 1.65
-  jumpStartSpeed: 1
-  jumpStaySpeed: 0.3
+  jumpStartSpeed: 0.8
+  jumpStaySpeed: 10
   maxJumpDuration: 0.1
   rightWall: 0
   leftWall: 0
