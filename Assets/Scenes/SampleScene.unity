@@ -135,8 +135,6 @@ GameObject:
   - component: {fileID: 166208992}
   - component: {fileID: 166208991}
   - component: {fileID: 166208993}
-  - component: {fileID: 166208995}
-  - component: {fileID: 166208994}
   m_Layer: 6
   m_Name: Walls
   m_TagString: Untagged
@@ -707,181 +705,11 @@ TilemapCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 1
+  m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
---- !u!66 &166208994
-CompositeCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 166208989}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
-  m_GenerationType: 0
-  m_EdgeRadius: 0
-  m_ColliderPaths:
-  - m_Collider: {fileID: 166208993}
-    m_ColliderPaths:
-    - - X: -18400000
-        Y: 0
-      - X: -19200000
-        Y: 0
-      - X: -19200000
-        Y: -4799999
-      - X: -18400000
-        Y: -4799999
-    - - X: 19200000
-        Y: 0
-      - X: 18400000
-        Y: 0
-      - X: 18400000
-        Y: -4799999
-      - X: 19200000
-        Y: -4799999
-    - - X: -8000000
-        Y: -6400000
-      - X: -18400000
-        Y: -6400000
-      - X: -18400000
-        Y: -4800000
-      - X: -19200000
-        Y: -4800000
-      - X: -19200000
-        Y: -7199999
-      - X: -8000000
-        Y: -7199999
-    - - X: 9599999
-        Y: -6400000
-      - X: 7999999
-        Y: -6400000
-      - X: 7999999
-        Y: -5600000
-      - X: 9599999
-        Y: -5600000
-      - X: 9599999
-        Y: -4800000
-      - X: 7199999
-        Y: -4800000
-      - X: 7199999
-        Y: -6400000
-      - X: 4800000
-        Y: -6400000
-      - X: 4800000
-        Y: -7199999
-      - X: 9599999
-        Y: -7199999
-    - - X: 14400001
-        Y: -4800000
-      - X: 9600000
-        Y: -4800000
-      - X: 9600000
-        Y: -5600000
-      - X: 14400001
-        Y: -5600000
-    - - X: 19200000
-        Y: -4800000
-      - X: 18400000
-        Y: -4800000
-      - X: 18400000
-        Y: -6400000
-      - X: 9600000
-        Y: -6400000
-      - X: 9600000
-        Y: -7199999
-      - X: 19200000
-        Y: -7199999
-    - - X: -4800000
-        Y: -6400000
-      - X: -7999999
-        Y: -6400000
-      - X: -7999999
-        Y: -7199999
-      - X: -4800000
-        Y: -7199999
-    - - X: 4799999
-        Y: -6400000
-      - X: -4799999
-        Y: -6400000
-      - X: -4799999
-        Y: -7199999
-      - X: 4799999
-        Y: -7199999
-  m_CompositePaths:
-    m_Paths:
-    - - {x: 1.9199709, y: -0.7199999}
-      - {x: 1.9199709, y: 0}
-      - {x: 1.84, y: -0.000029300001}
-      - {x: 1.8399706, y: -0.64}
-      - {x: 0.7999999, y: -0.6399706}
-      - {x: 0.80002934, y: -0.56}
-      - {x: 1.4400002, y: -0.5599707}
-      - {x: 1.4399709, y: -0.48000002}
-      - {x: 0.7199999, y: -0.4800293}
-      - {x: 0.7199705, y: -0.64}
-      - {x: -1.84, y: -0.6399706}
-      - {x: -1.8400292, y: 0}
-      - {x: -1.9200001, y: -0.000029300001}
-      - {x: -1.9199709, y: -0.7199999}
-  m_VertexDistance: 0.0005
-  m_OffsetDistance: 0.00005
-  m_UseDelaunayMesh: 0
-  m_CompositeGameObject: {fileID: 166208989}
---- !u!50 &166208995
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 166208989}
-  m_BodyType: 2
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 0.0001
-  m_LinearDrag: 0
-  m_AngularDrag: 0
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 7
 --- !u!1 &310847034
 GameObject:
   m_ObjectHideFlags: 0
@@ -947,7 +775,7 @@ Transform:
   m_GameObject: {fileID: 310847034}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.895, y: -0.128, z: -10}
+  m_LocalPosition: {x: -0.258, y: 0.801, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -991,7 +819,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_BackGroundColor: {r: 0.5662381, g: 0.5662381, b: 0.5662381, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1041,7 +869,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.895, y: -0.128, z: -10}
+  m_LocalPosition: {x: -0.258, y: 0.801, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1291,7 +1119,7 @@ Transform:
   m_GameObject: {fileID: 786548888}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.895, y: -0.128, z: 0}
+  m_LocalPosition: {x: -0.258, y: 0.801, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1309,13 +1137,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3be3528796af7694d851c1cfcb2ca422, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 0.008
-  maxSpeed: 0.0016
-  gravity: 0.009
-  maxFallSpeed: 0.0021
-  jumpStartSpeed: 0.0016
-  jumpStaySpeed: 0.015
+  moveSpeed: 0.1
+  currentXSpeed: 0
+  maxSpeed: 0.8
+  gravity: 0.15
+  maxFallSpeed: 1.65
+  jumpStartSpeed: 1
+  jumpStaySpeed: 0.3
   maxJumpDuration: 0.1
+  rightWall: 0
+  leftWall: 0
+  ceiling: 0
 --- !u!1 &1078830639
 GameObject:
   m_ObjectHideFlags: 3

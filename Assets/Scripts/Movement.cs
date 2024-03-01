@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
+    float delta;
     //Movement on x
     [Header("Movement on x")]
     [SerializeField] float moveSpeed;
-    float currentXSpeed;
+    [SerializeField] float currentXSpeed;
     [SerializeField] float maxSpeed;
     bool onFloor;
+    bool adjustedToFloor;
     Vector2 lastPosition;
 
     //Movement on y
@@ -24,9 +26,9 @@ public class Movement : MonoBehaviour
     bool jumping;
 
     //Collisions with walls
-    bool rightWall;
-    bool leftWall;
-    bool ceiling;
+    [SerializeField] bool rightWall;
+    [SerializeField] bool leftWall;
+    [SerializeField] bool ceiling;
 
     void Start()
     {
@@ -35,7 +37,9 @@ public class Movement : MonoBehaviour
 
     void Update()
     {
+        delta = Time.unscaledDeltaTime * Time.timeScale;
         onFloor = CheckOnFloor();
+        rightWall = CheckRightWalls();
 
         //xMovement
         if (Input.GetAxis("Horizontal") > 0f || Input.GetAxis("Horizontal") < 0f) 
@@ -60,14 +64,18 @@ public class Movement : MonoBehaviour
 
         //movement
         lastPosition = transform.position;
-        transform.Translate(currentXSpeed, 0, 0);
-        transform.Translate(0, currentYSpeed, 0);
+        transform.Translate(currentXSpeed * delta, 0, 0);
+        transform.Translate(0, currentYSpeed * delta, 0);
+        if(onFloor && !adjustedToFloor)
+        {
+           //AdjustToFloor();
+        }
     }
 
     void MovementOnX() //1 for right, -1 for left, 0 for nothing
     {
         float xAxis = Input.GetAxis("Horizontal");
-        currentXSpeed += moveSpeed * Time.deltaTime * xAxis;
+        currentXSpeed += moveSpeed * xAxis;
         if (currentXSpeed >= maxSpeed)
         {
             currentXSpeed = maxSpeed * xAxis;
@@ -90,13 +98,13 @@ public class Movement : MonoBehaviour
             direction = -1;
         }
 
-        if (currentXSpeed <= .0005f && currentXSpeed >= -.0005f)
+        if (currentXSpeed <= .005f && currentXSpeed >= -.005f)
         {
             currentXSpeed = 0;
         }
         else
         {
-            currentXSpeed -= moveSpeed * direction * Time.deltaTime;
+            currentXSpeed -= moveSpeed * direction;
         }
     }
 
@@ -104,7 +112,7 @@ public class Movement : MonoBehaviour
     {
         if (!onFloor)
         {
-            currentYSpeed -= gravity * Time.deltaTime;
+            currentYSpeed -= gravity;
             if(currentYSpeed <= -maxFallSpeed)
             {
                 currentYSpeed = -maxFallSpeed;
@@ -127,7 +135,7 @@ public class Movement : MonoBehaviour
         }
         if (jumping && jumpStartTime + maxJumpDuration >= Time.time)
         {
-            currentYSpeed += jumpStaySpeed * Time.deltaTime;
+            currentYSpeed += jumpStaySpeed;
         }
     }
 
@@ -141,9 +149,9 @@ public class Movement : MonoBehaviour
         Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
 
         //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .035f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .05f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .05f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .05f, mask);
 
         if (hitC || hitL || hitR)
         {
@@ -151,11 +159,12 @@ public class Movement : MonoBehaviour
         }
         else
         {
+            adjustedToFloor = false;
             return false;
         }
     }
 
-    bool CheckRightWalls()
+    void AdjustToFloor()
     {
         LayerMask mask;
         mask = (1 << 6);
@@ -165,11 +174,42 @@ public class Movement : MonoBehaviour
         Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
 
         //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .035f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .05f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .05f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .05f, mask);
 
-        if (hitC || hitL || hitR)
+        if (hitC)
+        {
+            transform.position = new Vector2(transform.position.x,hitC.point.y);
+            Debug.Log(hitC.point.y);
+            adjustedToFloor = true;
+        }
+        else if (hitL)
+        {
+            transform.position = new Vector2(transform.position.x,hitL.point.y);
+            adjustedToFloor = true;
+        }
+        else
+        {
+            transform.position = new Vector2(transform.position.x,hitR.point.y);
+            adjustedToFloor = true;
+        }
+    }
+
+    bool CheckRightWalls()
+    {
+        LayerMask mask;
+        mask = (1 << 6);
+
+        Vector2 centerRayPos = new Vector2(transform.position.x + .02f, transform.position.y);
+        Vector2 upperRayPos = new Vector2(transform.position.x + .02f, transform.position.y + .05f);
+        Vector2 lowerRayPos = new Vector2(transform.position.x + .02f, transform.position.y - .05f);
+
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.right, .035f, mask);
+        RaycastHit2D hitU = Physics2D.Raycast(upperRayPos, Vector2.right, .035f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.right, .035f, mask);
+
+        if (hitC || hitU || hitL)
         {
             return true;
         }
@@ -226,4 +266,14 @@ public class Movement : MonoBehaviour
             return false;
         }
     }
+
+    //void OnCollisionEnter2D(Collision2D col)
+    //{
+    //    Debug.Log("si");
+    //    if(col.collider.gameObject.layer == 6)
+    //    {
+    //        onFloor = true;
+    //        Debug.Log("si");
+    //    }
+    //}
 }
