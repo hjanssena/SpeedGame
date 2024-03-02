@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
+    Animator animator;
+
     float delta;
     //Movement on x
     [Header("Movement on x")]
@@ -11,6 +13,7 @@ public class Movement : MonoBehaviour
     [SerializeField] float currentXSpeed;
     [SerializeField] float maxSpeed;
     bool onFloor;
+    bool updateStart = false;
     bool adjustedToFloor;
     Vector2 lastPosition;
 
@@ -33,49 +36,80 @@ public class Movement : MonoBehaviour
     void Start()
     {
         lastPosition = transform.position;
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        delta = Time.unscaledDeltaTime * Time.timeScale;
-        onFloor = CheckOnFloor();
-        rightWall = CheckRightWalls();
+        if(!updateStart)
+        {
+            StartCoroutine("WaitUntilLoad");
+        }
+        if(updateStart)
+        {
+            delta = Time.unscaledDeltaTime * Time.timeScale;
+            onFloor = CheckOnFloor();
+            rightWall = CheckRightWalls();
+            leftWall = CheckLeftWalls();
+            ceiling = CheckCeiling();
 
-        //xMovement
-        if (Input.GetAxis("Horizontal") > 0f || Input.GetAxis("Horizontal") < 0f) 
-        {
-            MovementOnX();
-        }
-        else
-        {
-            StopMovement();
-        }
+            //xMovement
+            if (Input.GetAxis("Horizontal") > 0f || Input.GetAxis("Horizontal") < 0f) 
+            {
+                MovementOnX();
+                if(onFloor){ animator.SetBool("walking", true); }
+                else { animator.SetBool("walking", false); }
+            }
+            else
+            {
+                StopMovement();
+                animator.SetBool("walking", false);
+            }
 
-        Gravity();
-        if (Input.GetAxis("Jump") > 0)
-        {
-            Jump();
-        }
-        else
-        {
-            jumping = false;
-        }
-        
+            //yMovement
+            Gravity();
+            if (Input.GetAxis("Jump") > 0)
+            {
+                Jump();
+            }
+            else
+            {
+                jumping = false;
+            }
 
-        //movement
-        lastPosition = transform.position;
-        transform.Translate(currentXSpeed * delta, 0, 0);
-        transform.Translate(0, currentYSpeed * delta, 0);
-        if(onFloor && !adjustedToFloor)
-        {
-           //AdjustToFloor();
+            //movement
+            ApplyMovementLimits();
+            lastPosition = transform.position;
+            transform.Translate(currentXSpeed * delta, 0, 0);
+            transform.Translate(0, currentYSpeed * delta, 0);
         }
     }
 
     void MovementOnX() //1 for right, -1 for left, 0 for nothing
     {
         float xAxis = Input.GetAxis("Horizontal");
-        currentXSpeed += moveSpeed * xAxis * delta;
+        if(xAxis > 0)
+        {
+            if(currentXSpeed < 0)
+            {
+                currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+            }
+            else
+            {
+                currentXSpeed += moveSpeed * xAxis * delta;
+            }
+        }
+        else
+        {
+            if(currentXSpeed > 0)
+            {
+                currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+            }
+            else
+            {
+                currentXSpeed += moveSpeed * xAxis * delta;
+            }
+        }
         if (currentXSpeed >= maxSpeed)
         {
             currentXSpeed = maxSpeed * xAxis;
@@ -104,7 +138,7 @@ public class Movement : MonoBehaviour
         }
         else
         {
-            currentXSpeed -= moveSpeed * direction * delta;
+            currentXSpeed -= moveSpeed * 1.5f * direction * delta;
         }
     }
 
@@ -139,22 +173,58 @@ public class Movement : MonoBehaviour
         }
     }
 
+    void ApplyMovementLimits()
+    {
+        if(rightWall && currentXSpeed > 0)
+        {
+            currentXSpeed = 0;
+        }
+        if(leftWall && currentXSpeed < 0)
+        {
+            currentXSpeed = 0;
+        }
+        if(ceiling && currentYSpeed > 0)
+        {
+            currentYSpeed = 0;
+        }
+    }
+
     bool CheckOnFloor()
     {
         LayerMask mask;
         mask = (1 << 6);
 
-        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y - .05f);
-        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y - .05f);
-        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
+        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y);
+        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y);
 
         //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .05f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .05f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .05f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .08f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .08f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .08f, mask);
 
-        if (hitC || hitL || hitR)
+        if (hitC)
         {
+            if(!adjustedToFloor)
+            {
+              AdjustToFloor(hitC);
+            }
+            return true;
+        }
+        else if(hitL)
+        {
+            if(!adjustedToFloor)
+            {
+              AdjustToFloor(hitL);
+            }
+            return true;
+        }
+        else if(hitR)
+        {
+            if(!adjustedToFloor)
+            {
+              AdjustToFloor(hitR);
+            }
             return true;
         }
         else
@@ -164,36 +234,10 @@ public class Movement : MonoBehaviour
         }
     }
 
-    void AdjustToFloor()
+    void AdjustToFloor(RaycastHit2D hit)
     {
-        LayerMask mask;
-        mask = (1 << 6);
-
-        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y - .05f);
-        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y - .05f);
-        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
-
-        //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .05f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .05f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .05f, mask);
-
-        if (hitC)
-        {
-            transform.position = new Vector2(transform.position.x,hitC.point.y);
-            Debug.Log(hitC.point.y);
-            adjustedToFloor = true;
-        }
-        else if (hitL)
-        {
-            transform.position = new Vector2(transform.position.x,hitL.point.y);
-            adjustedToFloor = true;
-        }
-        else
-        {
-            transform.position = new Vector2(transform.position.x,hitR.point.y);
-            adjustedToFloor = true;
-        }
+        transform.position = new Vector2(transform.position.x,hit.point.y + .08f);
+        adjustedToFloor = true;
     }
 
     bool CheckRightWalls()
@@ -201,15 +245,19 @@ public class Movement : MonoBehaviour
         LayerMask mask;
         mask = (1 << 6);
 
-        Vector2 centerRayPos = new Vector2(transform.position.x + .02f, transform.position.y);
-        Vector2 upperRayPos = new Vector2(transform.position.x + .02f, transform.position.y + .05f);
-        Vector2 lowerRayPos = new Vector2(transform.position.x + .02f, transform.position.y - .05f);
+        Vector2 upperRayPos = new Vector2(transform.position.x, transform.position.y + .075f);
+        Vector2 centerUpRayPos = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 centerLowRayPos = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 lowerRayPos = new Vector2(transform.position.x, transform.position.y - .075f);
 
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.right, .035f, mask);
-        RaycastHit2D hitU = Physics2D.Raycast(upperRayPos, Vector2.right, .035f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.right, .035f, mask);
+        RaycastHit2D hitU = Physics2D.Raycast(upperRayPos, Vector2.right, .055f, mask);
+        RaycastHit2D hitUC = Physics2D.Raycast(centerUpRayPos, Vector2.right, .055f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.right, .055f, mask);
+        RaycastHit2D hitLC = Physics2D.Raycast(centerLowRayPos, Vector2.right, .055f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.right, .055f, mask);
 
-        if (hitC || hitU || hitL)
+        if (hitC || hitUC || hitLC || hitU || hitL)
         {
             return true;
         }
@@ -224,16 +272,19 @@ public class Movement : MonoBehaviour
         LayerMask mask;
         mask = (1 << 6);
 
-        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y - .05f);
-        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y - .05f);
-        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
+        Vector2 upperRayPos = new Vector2(transform.position.x, transform.position.y + .075f);
+        Vector2 centerUpRayPos = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 centerLowRayPos = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 lowerRayPos = new Vector2(transform.position.x, transform.position.y - .075f);
 
-        //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .035f, mask);
+        RaycastHit2D hitU = Physics2D.Raycast(upperRayPos, Vector2.left, .055f, mask);
+        RaycastHit2D hitUC = Physics2D.Raycast(centerUpRayPos, Vector2.left, .055f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.left, .055f, mask);
+        RaycastHit2D hitLC = Physics2D.Raycast(centerLowRayPos, Vector2.left, .055f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.left, .055f, mask);
 
-        if (hitC || hitL || hitR)
+        if (hitC || hitUC || hitLC || hitU || hitL)
         {
             return true;
         }
@@ -248,14 +299,14 @@ public class Movement : MonoBehaviour
         LayerMask mask;
         mask = (1 << 6);
 
-        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y - .05f);
-        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y - .05f);
-        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y - .05f);
+        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y);
+        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y);
 
         //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .035f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .035f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.up, .08f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.up, .08f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.up, .08f, mask);
 
         if (hitC || hitL || hitR)
         {
@@ -267,13 +318,9 @@ public class Movement : MonoBehaviour
         }
     }
 
-    //void OnCollisionEnter2D(Collision2D col)
-    //{
-    //    Debug.Log("si");
-    //    if(col.collider.gameObject.layer == 6)
-    //    {
-    //        onFloor = true;
-    //        Debug.Log("si");
-    //    }
-    //}
+    IEnumerator WaitUntilLoad()
+    {
+        yield return new WaitForSeconds(.5f);
+        updateStart = true;
+    }
 }
