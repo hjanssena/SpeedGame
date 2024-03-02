@@ -7,6 +7,7 @@ public class Movement : MonoBehaviour
     Animator animator;
 
     float delta;
+
     //Movement on x
     [Header("Movement on x")]
     [SerializeField] float moveSpeed;
@@ -24,7 +25,7 @@ public class Movement : MonoBehaviour
     [SerializeField] float jumpStartSpeed;
     [SerializeField] float jumpStaySpeed;
     float currentYSpeed;
-    float jumpStartTime;
+    bool jumpDone;
     [SerializeField] float maxJumpDuration;
     bool jumping;
 
@@ -88,6 +89,7 @@ public class Movement : MonoBehaviour
     void MovementOnX() //1 for right, -1 for left, 0 for nothing
     {
         float xAxis = Input.GetAxis("Horizontal");
+        if(!onFloor) { xAxis = xAxis * .9f;  }
         if(xAxis > 0)
         {
             if(currentXSpeed < 0)
@@ -164,10 +166,11 @@ public class Movement : MonoBehaviour
         {
             transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
-            jumpStartTime = Time.time;
+            jumpDone = false;
             jumping = true;
+            StartCoroutine("JumpTimer");
         }
-        if (jumping && jumpStartTime + maxJumpDuration >= Time.time)
+        if (jumping && !jumpDone)
         {
             currentYSpeed += jumpStaySpeed * delta;
         }
@@ -322,5 +325,12 @@ public class Movement : MonoBehaviour
     {
         yield return new WaitForSeconds(.5f);
         updateStart = true;
+    }
+
+    IEnumerator JumpTimer()
+    {
+        yield return new WaitForSeconds(maxJumpDuration);
+        jumpDone = true;
+        Debug.Log(transform.position.y);
     }
 }
