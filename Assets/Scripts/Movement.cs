@@ -11,9 +11,8 @@ public class Movement : MonoBehaviour
     //Movement on x
     [Header("Movement on x")]
     [SerializeField] float moveSpeed;
-    [SerializeField] float currentXSpeed;
+    float currentXSpeed;
     [SerializeField] float maxSpeed;
-    bool onFloor;
     bool updateStart = false;
     bool adjustedToFloor;
     Vector2 lastPosition;
@@ -24,15 +23,16 @@ public class Movement : MonoBehaviour
     [SerializeField] float maxFallSpeed;
     [SerializeField] float jumpStartSpeed;
     [SerializeField] float jumpStaySpeed;
+    [SerializeField] float maxJumpForce;
+    float jumpForceApplied;
     float currentYSpeed;
-    bool jumpDone;
-    [SerializeField] float maxJumpDuration;
     bool jumping;
 
     //Collisions with walls
-    [SerializeField] bool rightWall;
-    [SerializeField] bool leftWall;
-    [SerializeField] bool ceiling;
+    bool onFloor;
+    bool rightWall;
+    bool leftWall;
+    bool ceiling;
 
     void Start()
     {
@@ -166,13 +166,19 @@ public class Movement : MonoBehaviour
         {
             transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
-            jumpDone = false;
             jumping = true;
-            StartCoroutine("JumpTimer");
+            jumpForceApplied = 0;
         }
-        if (jumping && !jumpDone)
+        if (jumping && maxJumpForce > jumpForceApplied + (jumpStaySpeed * delta))
         {
+            jumpForceApplied += jumpStaySpeed * delta;
             currentYSpeed += jumpStaySpeed * delta;
+        }
+        else if (jumping && maxJumpForce > jumpForceApplied)
+        {
+            float remainingForce = maxJumpForce - jumpForceApplied;
+            jumpForceApplied += remainingForce;
+            currentYSpeed += remainingForce;
         }
     }
 
@@ -325,12 +331,5 @@ public class Movement : MonoBehaviour
     {
         yield return new WaitForSeconds(.5f);
         updateStart = true;
-    }
-
-    IEnumerator JumpTimer()
-    {
-        yield return new WaitForSeconds(maxJumpDuration);
-        jumpDone = true;
-        Debug.Log(transform.position.y);
     }
 }
