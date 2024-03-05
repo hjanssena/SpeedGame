@@ -16,6 +16,7 @@ public class Movement : MonoBehaviour
     bool updateStart = false;
     bool adjustedToFloor;
     Vector2 lastPosition;
+    int lastDirection = 1;
 
     //Movement on y
     [Header("Movement on y")]
@@ -27,17 +28,45 @@ public class Movement : MonoBehaviour
     float jumpForceApplied;
     float currentYSpeed;
     bool jumping;
+    bool jumpInUse = false;
 
-    //Collisions with walls
+    [Header("Wall Grab")]
+    [SerializeField] float wallGrabFriction;
+    [SerializeField] float wallGrabMaxFallSpeed;
+    [SerializeField] float timeToReleaseGrab;
+    float wallGrabReleaseTime;
+    bool wallGrabBufferDone;
+    bool nearWall = false;
+
+    [Header("Wall Jump")]
+    [SerializeField] float wallJumpStartXForce;
+    [SerializeField] float wallJumpStayXForce;
+    [SerializeField] float wallJumpMaxXForce;
+    float wallJumpXForceApplied;
+    [SerializeField] float wallJumpStartYForce;
+    [SerializeField] float wallJumpStayYForce;
+    [SerializeField] float wallJumpMaxYForce;
+    float wallJumpYForceApplied;
+    bool wallJumping = false;
+    int wallJumpDirection;
+
+    //Walls and floor detection
     bool onFloor;
     bool rightWall;
     bool leftWall;
     bool ceiling;
 
+    //Sounds
+    [Header("Sound")]
+    [SerializeField] AudioClip stepSound;
+    [SerializeField] AudioClip jumpSound;
+    AudioSource audioPlayer;
+
     void Start()
     {
         lastPosition = transform.position;
         animator = GetComponent<Animator>();
+        audioPlayer = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -60,6 +89,14 @@ public class Movement : MonoBehaviour
                 MovementOnX();
                 if(onFloor){ animator.SetBool("walking", true); }
                 else { animator.SetBool("walking", false); }
+                if(Input.GetAxis("Horizontal") > 0f)
+                {
+                    lastDirection = 1;
+                }
+                else
+                {
+                    lastDirection = -1;
+                }
             }
             else
             {
@@ -72,11 +109,19 @@ public class Movement : MonoBehaviour
             if (Input.GetAxis("Jump") > 0)
             {
                 Jump();
+                WallJump();
+                jumpInUse = true;
             }
             else
             {
                 jumping = false;
             }
+            if (Input.GetAxis("Jump") == 0)
+            {
+                wallJumping = false;
+                jumpInUse = false;
+            }
+            //WallRelease();
 
             //movement
             ApplyMovementLimits();
@@ -86,10 +131,10 @@ public class Movement : MonoBehaviour
         }
     }
 
-    void MovementOnX() //1 for right, -1 for left, 0 for nothing
+    void MovementOnX()
     {
         float xAxis = Input.GetAxis("Horizontal");
-        if(!onFloor) { xAxis = xAxis * .9f;  }
+        if(!onFloor) { xAxis = xAxis * .6f;  }
         if(xAxis > 0)
         {
             if(currentXSpeed < 0)
@@ -162,12 +207,13 @@ public class Movement : MonoBehaviour
 
     void Jump()
     {
-        if (onFloor && !jumping)
+        if (onFloor && !jumping && !jumpInUse)
         {
             transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
             jumping = true;
             jumpForceApplied = 0;
+            JumpSound();
         }
         if (jumping && maxJumpForce > jumpForceApplied + (jumpStaySpeed * delta))
         {
@@ -184,20 +230,104 @@ public class Movement : MonoBehaviour
 
     void ApplyMovementLimits()
     {
-        if(rightWall && currentXSpeed > 0)
+        if (rightWall && currentXSpeed > 0 && !onFloor && currentYSpeed <=0)
         {
             currentXSpeed = 0;
+            WallGrab();
+            nearWall = true;
         }
-        if(leftWall && currentXSpeed < 0)
+        else if (rightWall && currentXSpeed > 0)
         {
             currentXSpeed = 0;
+            nearWall = true;
         }
-        if(ceiling && currentYSpeed > 0)
+        if (leftWall && currentXSpeed < 0 && !onFloor && currentYSpeed <= 0)
+        {
+            currentXSpeed = 0;
+            WallGrab();
+            nearWall = true;
+        }
+        else if (leftWall && currentXSpeed < 0)
+        {
+            currentXSpeed = 0;
+            nearWall = true;
+        }
+        if (ceiling && currentYSpeed > 0)
         {
             currentYSpeed = 0;
         }
     }
 
+    void WallGrab()
+    {
+        currentYSpeed += wallGrabFriction * delta;
+
+        if(currentYSpeed < wallGrabMaxFallSpeed)
+        {
+            currentYSpeed = -wallGrabMaxFallSpeed;
+        }
+    }
+
+    void WallRelease()
+    {
+        if (nearWall && wallGrabBufferDone)
+        {
+            wallGrabBufferDone = false;
+            wallGrabReleaseTime = Time.time;
+        }
+        if(wallGrabReleaseTime + timeToReleaseGrab <= Time.time)
+        {
+            wallGrabBufferDone = true;
+            nearWall = false;
+        }
+    }
+
+    void WallJump()
+    {
+        if (Input.GetAxis("Jump") > 0 && !onFloor && !jumpInUse && !wallJumping)
+        {
+            wallJumpDirection = CheckBothWalls();
+            if(wallJumpDirection > 0 || wallJumpDirection < 0)
+            {
+                transform.position = new Vector2(transform.position.x + (.01f * wallJumpDirection), transform.position.y);
+                currentXSpeed = wallJumpStartXForce * wallJumpDirection;
+                wallJumpXForceApplied = 0;
+                currentYSpeed = wallJumpStartYForce;
+                wallJumpYForceApplied = 0;
+                wallJumping = true;
+                JumpSound();
+            }
+        }
+        if (wallJumping && wallJumpMaxXForce > wallJumpXForceApplied + (wallJumpStayXForce * delta))
+        {
+            wallJumpXForceApplied += wallJumpStayXForce * delta;
+            currentXSpeed += wallJumpStayXForce * delta * wallJumpDirection;
+        }
+        else if (wallJumping && wallJumpMaxXForce > wallJumpXForceApplied)
+        {
+            float remainingForce = wallJumpMaxXForce - wallJumpXForceApplied;
+            wallJumpXForceApplied += remainingForce;
+            currentXSpeed += remainingForce * wallJumpDirection;
+        }
+        if (wallJumping && wallJumpMaxYForce > wallJumpYForceApplied + (wallJumpStayYForce * delta))
+        {
+            wallJumpYForceApplied += wallJumpStayYForce * delta;
+            currentYSpeed += wallJumpStayYForce * delta;
+        }
+        else if (wallJumping && wallJumpMaxYForce > wallJumpYForceApplied)
+        {
+            float remainingForce = wallJumpMaxYForce - wallJumpYForceApplied;
+            wallJumpYForceApplied += remainingForce;
+            currentYSpeed += remainingForce;
+        }
+
+        if(wallJumping && wallJumpXForceApplied >= wallJumpMaxXForce && wallJumpYForceApplied >= wallJumpMaxYForce)
+        {
+            wallJumping = false;
+        }
+    }
+
+    //WALL AND FLOOR DETECTION FUNCTIONS
     bool CheckOnFloor()
     {
         LayerMask mask;
@@ -239,6 +369,7 @@ public class Movement : MonoBehaviour
         else
         {
             adjustedToFloor = false;
+            animator.SetBool("walking", false);
             return false;
         }
     }
@@ -303,6 +434,58 @@ public class Movement : MonoBehaviour
         }
     }
 
+    int CheckBothWalls() //Used for wall jumping
+    {
+        LayerMask mask;
+        mask = (1 << 6);
+
+        Vector2 upperRayPosR = new Vector2(transform.position.x, transform.position.y + .075f);
+        Vector2 centerUpRayPosR = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 centerRayPosR = new Vector2(transform.position.x, transform.position.y);
+        Vector2 centerLowRayPosR = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 lowerRayPosR = new Vector2(transform.position.x, transform.position.y - .075f);
+        Vector2 upperRayPosL = new Vector2(transform.position.x, transform.position.y + .075f);
+        Vector2 centerUpRayPosL = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 centerRayPosL = new Vector2(transform.position.x, transform.position.y);
+        Vector2 centerLowRayPosL = new Vector2(transform.position.x, transform.position.y + .0375f);
+        Vector2 lowerRayPosL = new Vector2(transform.position.x, transform.position.y - .075f);
+
+        RaycastHit2D hitUR = Physics2D.Raycast(upperRayPosR, Vector2.right, .065f, mask);
+        RaycastHit2D hitUCR = Physics2D.Raycast(centerUpRayPosR, Vector2.right, .065f, mask);
+        RaycastHit2D hitCR = Physics2D.Raycast(centerRayPosR, Vector2.right, .065f, mask);
+        RaycastHit2D hitLCR = Physics2D.Raycast(centerLowRayPosR, Vector2.right, .065f, mask);
+        RaycastHit2D hitLR = Physics2D.Raycast(lowerRayPosR, Vector2.right, .065f, mask);
+        RaycastHit2D hitUL = Physics2D.Raycast(upperRayPosL, Vector2.left, .065f, mask);
+        RaycastHit2D hitUCL = Physics2D.Raycast(centerUpRayPosL, Vector2.left, .065f, mask);
+        RaycastHit2D hitCL = Physics2D.Raycast(centerRayPosL, Vector2.left, .065f, mask);
+        RaycastHit2D hitLCL = Physics2D.Raycast(centerLowRayPosL, Vector2.left, .065f, mask);
+        RaycastHit2D hitLL = Physics2D.Raycast(lowerRayPosL, Vector2.left, .065f, mask);
+
+        if(lastDirection == 1)
+        {
+            if(hitCR || hitUCR || hitLCR || hitUR || hitLR)
+            {
+                return -1;
+            }
+            else if (hitCL || hitUCL || hitLCL || hitUL || hitLL)
+            {
+                return 1;
+            }
+        }
+        else if(lastDirection == -1)
+        {
+            if (hitCL || hitUCL || hitLCL || hitUL || hitLL)
+            {
+                return 1;
+            }
+            else if (hitCR || hitUCR || hitLCR || hitUR || hitLR)
+            {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
     bool CheckCeiling()
     {
         LayerMask mask;
@@ -327,6 +510,23 @@ public class Movement : MonoBehaviour
         }
     }
 
+    //SOUND FUNCTIONS
+    void StepSound()
+    {
+        if (!audioPlayer.isPlaying)
+        {
+            audioPlayer.clip = stepSound;
+            audioPlayer.Play();
+        }
+    }
+
+    void JumpSound()
+    {
+        audioPlayer.clip = jumpSound;
+        audioPlayer.Play();
+    }
+    
+    //Wait a bit before level starts to avoid collision shenanigans
     IEnumerator WaitUntilLoad()
     {
         yield return new WaitForSeconds(.5f);

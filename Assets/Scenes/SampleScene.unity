@@ -2488,7 +2488,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2037151108}
-  m_BodyType: 2
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -2505,7 +2505,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!19719996 &2037151114
 TilemapCollider2D:
@@ -2577,139 +2577,6 @@ MonoBehaviour:
   m_InstancedGameObject: {fileID: 0}
   m_Flags: 3
   m_ColliderType: 1
---- !u!1001 &4898823306718833813
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 170607689687303, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_Name
-      value: WaterGenerator
-      objectReference: {fileID: 0}
-    - target: {fileID: 170607689687303, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_Layer
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.6336553
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.2819687
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.08508208
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1228568053791589202, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: ShapeModule.type
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: emitterVelocityMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.type
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.radiusScale
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: ShapeModule.radiusThickness
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.collisionMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startSize.scalar
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.m_Bounce.scalar
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startSize.minScalar
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: EmissionModule.rateOverTime.scalar
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startLifetime.scalar
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.collidesWith.m_Bits
-      value: 80
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: CollisionModule.m_Planes.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startSize.minMaxState
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.gravityModifier.scalar
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startSizeY.minMaxState
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4069290506664148342, guid: 320112c61895267f081543e633470c16, type: 3}
-      propertyPath: InitialModule.startSizeZ.minMaxState
-      value: 3
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 320112c61895267f081543e633470c16, type: 3}
 --- !u!1001 &8860116391177832591
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2718,6 +2585,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpMaxXForce
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpStayXForce
+      value: 3.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpStayYForce
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpStartXForce
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpStartYForce
+      value: 0.7
+      objectReference: {fileID: 0}
     - target: {fileID: 6566468355418640560, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
       propertyPath: m_Name
       value: GameGuy
@@ -2775,4 +2662,3 @@ SceneRoots:
   - {fileID: 623723939}
   - {fileID: 8860116391177832591}
   - {fileID: 310847036}
-  - {fileID: 4898823306718833813}
