@@ -13,6 +13,7 @@ public class Movement : MonoBehaviour
     [SerializeField] float moveSpeed;
     float currentXSpeed;
     [SerializeField] float maxSpeed;
+    [SerializeField] float maxAirSpeed;
     bool updateStart = false;
     bool adjustedToFloor;
     Vector2 lastPosition;
@@ -36,7 +37,6 @@ public class Movement : MonoBehaviour
     [SerializeField] float timeToReleaseGrab;
     float wallGrabReleaseTime;
     bool wallGrabBufferDone;
-    bool nearWall = false;
 
     [Header("Wall Jump")]
     [SerializeField] float wallJumpStartXForce;
@@ -118,10 +118,9 @@ public class Movement : MonoBehaviour
             }
             if (Input.GetAxis("Jump") == 0)
             {
-                wallJumping = false;
                 jumpInUse = false;
+                wallJumping = false;
             }
-            //WallRelease();
 
             //movement
             ApplyMovementLimits();
@@ -134,36 +133,72 @@ public class Movement : MonoBehaviour
     void MovementOnX()
     {
         float xAxis = Input.GetAxis("Horizontal");
-        if(!onFloor) { xAxis = xAxis * .6f;  }
-        if(xAxis > 0)
-        {
-            if(currentXSpeed < 0)
+        if(!onFloor) 
+        { 
+            xAxis = xAxis * .6f;
+            if (xAxis > 0)
             {
-                currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                if (currentXSpeed < 0)
+                {
+                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                }
+                else if (currentXSpeed < maxSpeed)
+                {
+                    currentXSpeed += moveSpeed * xAxis * delta;
+                }
             }
             else
             {
-                currentXSpeed += moveSpeed * xAxis * delta;
+                if (currentXSpeed > 0)
+                {
+                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                }
+                else if (currentXSpeed < maxSpeed)
+                {
+                    currentXSpeed += moveSpeed * xAxis * delta;
+                }
+            }
+            if (currentXSpeed >= maxAirSpeed)
+            {
+                currentXSpeed = maxSpeed * xAxis;
+            }
+            else if (currentXSpeed <= -maxAirSpeed)
+            {
+                currentXSpeed = maxSpeed * xAxis;
             }
         }
         else
         {
-            if(currentXSpeed > 0)
+            if (xAxis > 0)
             {
-                currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                if (currentXSpeed < 0)
+                {
+                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                }
+                else if (currentXSpeed < maxSpeed)
+                {
+                    currentXSpeed += moveSpeed * xAxis * delta;
+                }
             }
             else
             {
-                currentXSpeed += moveSpeed * xAxis * delta;
+                if (currentXSpeed > 0)
+                {
+                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                }
+                else if (currentXSpeed < maxSpeed)
+                {
+                    currentXSpeed += moveSpeed * xAxis * delta;
+                }
             }
-        }
-        if (currentXSpeed >= maxSpeed)
-        {
-            currentXSpeed = maxSpeed * xAxis;
-        }
-        else if (currentXSpeed <= -maxSpeed)
-        {
+            if (currentXSpeed >= maxSpeed)
+            {
                 currentXSpeed = maxSpeed * xAxis;
+            }
+            else if (currentXSpeed <= -maxSpeed)
+            {
+                currentXSpeed = maxSpeed * xAxis;
+            }
         }
     }
 
@@ -178,6 +213,8 @@ public class Movement : MonoBehaviour
         {
             direction = -1;
         }
+
+        if (!onFloor) { direction = direction * .5f; }
 
         if (currentXSpeed <= .05f && currentXSpeed >= -.05f)
         {
@@ -234,28 +271,25 @@ public class Movement : MonoBehaviour
         {
             currentXSpeed = 0;
             WallGrab();
-            nearWall = true;
         }
         else if (rightWall && currentXSpeed > 0)
         {
             currentXSpeed = 0;
-            nearWall = true;
         }
         if (leftWall && currentXSpeed < 0 && !onFloor && currentYSpeed <= 0)
         {
             currentXSpeed = 0;
             WallGrab();
-            nearWall = true;
         }
         else if (leftWall && currentXSpeed < 0)
         {
             currentXSpeed = 0;
-            nearWall = true;
         }
         if (ceiling && currentYSpeed > 0)
         {
             currentYSpeed = 0;
         }
+
     }
 
     void WallGrab()
@@ -268,28 +302,14 @@ public class Movement : MonoBehaviour
         }
     }
 
-    void WallRelease()
-    {
-        if (nearWall && wallGrabBufferDone)
-        {
-            wallGrabBufferDone = false;
-            wallGrabReleaseTime = Time.time;
-        }
-        if(wallGrabReleaseTime + timeToReleaseGrab <= Time.time)
-        {
-            wallGrabBufferDone = true;
-            nearWall = false;
-        }
-    }
-
     void WallJump()
     {
-        if (Input.GetAxis("Jump") > 0 && !onFloor && !jumpInUse && !wallJumping)
+        if (!onFloor && !jumpInUse && !wallJumping)
         {
             wallJumpDirection = CheckBothWalls();
             if(wallJumpDirection > 0 || wallJumpDirection < 0)
             {
-                transform.position = new Vector2(transform.position.x + (.01f * wallJumpDirection), transform.position.y);
+                //transform.position = new Vector2(transform.position.x * wallJumpDirection, transform.position.y);
                 currentXSpeed = wallJumpStartXForce * wallJumpDirection;
                 wallJumpXForceApplied = 0;
                 currentYSpeed = wallJumpStartYForce;
@@ -302,6 +322,7 @@ public class Movement : MonoBehaviour
         {
             wallJumpXForceApplied += wallJumpStayXForce * delta;
             currentXSpeed += wallJumpStayXForce * delta * wallJumpDirection;
+            Debug.Log("Aqui toy");
         }
         else if (wallJumping && wallJumpMaxXForce > wallJumpXForceApplied)
         {
@@ -320,7 +341,6 @@ public class Movement : MonoBehaviour
             wallJumpYForceApplied += remainingForce;
             currentYSpeed += remainingForce;
         }
-
         if(wallJumping && wallJumpXForceApplied >= wallJumpMaxXForce && wallJumpYForceApplied >= wallJumpMaxYForce)
         {
             wallJumping = false;
@@ -397,8 +417,30 @@ public class Movement : MonoBehaviour
         RaycastHit2D hitLC = Physics2D.Raycast(centerLowRayPos, Vector2.right, .055f, mask);
         RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.right, .055f, mask);
 
-        if (hitC || hitUC || hitLC || hitU || hitL)
+        if (hitC)
         {
+            AdjustToWall(hitC, -1);
+            return true;
+        }
+        else if (hitUC)
+        {
+            AdjustToWall(hitUC, -1);
+            return true;
+        }
+        else if (hitLC)
+        {
+            AdjustToWall(hitLC, -1);
+            return true;
+        }
+        else if (hitU)
+        {
+            AdjustToWall(hitU, -1);
+            return true;
+
+        }
+        else if (hitL)
+        {
+            AdjustToWall(hitL, -1);
             return true;
         }
         else
@@ -424,14 +466,41 @@ public class Movement : MonoBehaviour
         RaycastHit2D hitLC = Physics2D.Raycast(centerLowRayPos, Vector2.left, .055f, mask);
         RaycastHit2D hitL = Physics2D.Raycast(lowerRayPos, Vector2.left, .055f, mask);
 
-        if (hitC || hitUC || hitLC || hitU || hitL)
+        if (hitC)
         {
+            AdjustToWall(hitC, 1);
+            return true;
+        }
+        else if (hitUC)
+        {
+            AdjustToWall(hitUC, 1);
+            return true;
+        }
+        else if (hitLC)
+        {
+            AdjustToWall(hitLC, 1);
+            return true;
+        }
+        else if (hitU)
+        {
+            AdjustToWall(hitU, 1);
+            return true;
+
+        }
+        else if (hitL)
+        {
+            AdjustToWall(hitL, 1);
             return true;
         }
         else
         {
             return false;
         }
+    }
+
+    void AdjustToWall(RaycastHit2D hit, int dir)
+    {
+        transform.position = new Vector2(hit.point.x + .055f * dir, transform.position.y);
     }
 
     int CheckBothWalls() //Used for wall jumping
