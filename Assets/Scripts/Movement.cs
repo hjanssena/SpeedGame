@@ -31,10 +31,14 @@ public class Movement : MonoBehaviour
     float currentYSpeed;
     bool jumping;
     bool jumpInUse = false;
+    [SerializeField] float jumpBuffer;
+    bool jumpBuffered;
+    float jumpPressed;
 
     [Header("Wall Grab")]
     [SerializeField] float wallGrabFriction;
     [SerializeField] float wallGrabMaxFallSpeed;
+    bool wallHolding;
 
     [Header("Wall Jump")]
     [SerializeField] float wallJumpStartXForce;
@@ -104,7 +108,17 @@ public class Movement : MonoBehaviour
 
             //yMovement
             Gravity();
-            if (Input.GetAxis("Jump") > 0)
+            if(jumpPressed + jumpBuffer < Time.time)
+            {
+                jumpBuffered = false;
+            }
+            if (Input.GetAxis("Jump") > 0 && !jumpBuffered && !jumpInUse) //The buffer is to let the players input a jump some milliseconds before touching ground
+            {
+                jumpPressed = Time.time; 
+                jumpBuffered = true;
+                jumpInUse = true;//JumpInUse is to make the getaxis act like a getkeydown
+            }
+            if(Input.GetAxis("Jump") > 0) 
             {
                 Jump();
                 WallJump();
@@ -112,9 +126,7 @@ public class Movement : MonoBehaviour
             else
             {
                 jumping = false;
-            }
-            if (Input.GetAxis("Jump") == 0)
-            {
+                jumpBuffered = false;
                 jumpInUse = false;
                 wallJumping = false;
             }
@@ -123,6 +135,7 @@ public class Movement : MonoBehaviour
             ApplyMovementLimits();
             lastPosition = transform.position;
             transform.Translate(currentXSpeed * delta, currentYSpeed * delta, 0);
+            wallHolding = false;
         }
     }
 
@@ -254,13 +267,13 @@ public class Movement : MonoBehaviour
     void Jump()
     {
         //Initial jump push
-        if (CheckForJump() && !jumping && !jumpInUse)
+        if (CheckForJump() && !jumping && jumpBuffered)
         {
-            jumpInUse = true;
             transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
-            jumping = true;
             jumpForceApplied = 0;
+            jumping = true;
+            jumpBuffered = false;
             JumpSound();
         }
         //Aditional force if player holds jump axis
@@ -284,7 +297,7 @@ public class Movement : MonoBehaviour
         if (rightWall && currentXSpeed > 0 && !onFloor && currentYSpeed <=0)
         {
             currentXSpeed = 0;
-            WallGrab(); //Do wall grab if player is walking towards the wall and not standing on floor
+            WallSlide(); //Do wall grab if player is walking towards the wall and not standing on floor
         }
         else if (rightWall && currentXSpeed > 0)
         {
@@ -293,7 +306,7 @@ public class Movement : MonoBehaviour
         if (leftWall && currentXSpeed < 0 && !onFloor && currentYSpeed <= 0)
         {
             currentXSpeed = 0;
-            WallGrab(); //Do wall grab if player is walking towards the wall and not standing on floor
+            WallSlide(); //Do wall grab if player is walking towards the wall and not standing on floor
         }
         else if (leftWall && currentXSpeed < 0)
         {
@@ -306,7 +319,7 @@ public class Movement : MonoBehaviour
 
     }
 
-    void WallGrab() //Reduce falling speed
+    void WallSlide() //Reduce falling speed
     {
         currentYSpeed += wallGrabFriction * delta;
 
@@ -316,11 +329,19 @@ public class Movement : MonoBehaviour
         }
     }
 
+    void WallHold()
+    {
+        if (Input.GetAxis("Fire1") > 0)
+        {
+            currentYSpeed = 0;
+            wallHolding = true;
+        }
+    }
+
     void WallJump() //Can be done when near a wall
     {
-        if (!onFloor && !jumpInUse && !wallJumping)
+        if (!onFloor && !wallJumping && jumpBuffered)
         {
-            jumpInUse = true;
             wallJumpDirection = CheckBothWalls();
             if(wallJumpDirection > 0 || wallJumpDirection < 0)
             {
@@ -329,14 +350,16 @@ public class Movement : MonoBehaviour
                 currentYSpeed = wallJumpStartYForce;
                 wallJumpYForceApplied = 0;
                 wallJumping = true;
+                jumpBuffered = false;
                 JumpSound();
+
+                Debug.Log("holi");
             }
         }
         if (wallJumping && wallJumpMaxXForce > wallJumpXForceApplied + (wallJumpStayXForce * delta))
         {
             wallJumpXForceApplied += wallJumpStayXForce * delta;
             currentXSpeed += wallJumpStayXForce * delta * wallJumpDirection;
-            Debug.Log("Aqui toy");
         }
         else if (wallJumping && wallJumpMaxXForce > wallJumpXForceApplied)
         {
@@ -418,9 +441,9 @@ public class Movement : MonoBehaviour
         Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y);
 
         //Centro, izquierda y derecha
-        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .09f, mask);
-        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .09f, mask);
-        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .09f, mask);
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .085f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .085f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .085f, mask);
 
         if (hitC || hitL || hitR)
         {

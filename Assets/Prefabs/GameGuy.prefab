@@ -146,22 +146,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 7.5
+  currentXSpeed: 0
   maxSpeed: 1
-  maxAirSpeed: 1.3
-  airMovementPenalty: 0.5
+  maxAirSpeed: 1.2
+  airMovementPenalty: 0.6
   gravity: 6.5
   maxFallSpeed: 2.1
   jumpStartSpeed: 0.45
   jumpStaySpeed: 15.5
   maxJumpForce: 2.6
+  jumping: 0
+  jumpInUse: 0
+  jumpBuffer: 0.04
+  jumpBuffered: 0
   wallGrabFriction: 5
   wallGrabMaxFallSpeed: 0.5
   wallJumpStartXForce: 1
-  wallJumpStayXForce: 3
+  wallJumpStayXForce: 2.5
   wallJumpMaxXForce: 1.1
   wallJumpStartYForce: 0.7
   wallJumpStayYForce: 13
   wallJumpMaxYForce: 2
+  wallJumping: 0
   stepSound: {fileID: 8300000, guid: e44bee6e550ab8d4ea2602b495e3f7da, type: 3}
   jumpSound: {fileID: 8300000, guid: f816dc4a6f8d5c046879745391f2598c, type: 3}
 --- !u!95 &7859956941153267252

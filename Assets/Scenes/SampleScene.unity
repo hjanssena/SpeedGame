@@ -3518,20 +3518,24 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
-      propertyPath: maxAirSpeed
+      propertyPath: wallJumpMaxXForce
       value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
-      propertyPath: airMovementPenalty
-      value: 0.5
+      propertyPath: wallJumpMaxYForce
+      value: 2.1
       objectReference: {fileID: 0}
     - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
       propertyPath: wallJumpStayXForce
-      value: 3.5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
       propertyPath: wallJumpStartXForce
-      value: 1
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6523925411388648362, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
+      propertyPath: wallJumpStartYForce
+      value: 0.45
       objectReference: {fileID: 0}
     - target: {fileID: 6566468355418640560, guid: e49a28d233466a4bc95729ac018019e9, type: 3}
       propertyPath: m_Name
