@@ -11,9 +11,10 @@ public class Movement : MonoBehaviour
     //Movement on x
     [Header("Movement on x")]
     [SerializeField] float moveSpeed;
-    float currentXSpeed;
+    [SerializeField] float currentXSpeed;
     [SerializeField] float maxSpeed;
     [SerializeField] float maxAirSpeed;
+    [SerializeField] float airMovementPenalty;
     bool updateStart = false;
     bool adjustedToFloor;
     Vector2 lastPosition;
@@ -34,9 +35,6 @@ public class Movement : MonoBehaviour
     [Header("Wall Grab")]
     [SerializeField] float wallGrabFriction;
     [SerializeField] float wallGrabMaxFallSpeed;
-    [SerializeField] float timeToReleaseGrab;
-    float wallGrabReleaseTime;
-    bool wallGrabBufferDone;
 
     [Header("Wall Jump")]
     [SerializeField] float wallJumpStartXForce;
@@ -110,7 +108,6 @@ public class Movement : MonoBehaviour
             {
                 Jump();
                 WallJump();
-                jumpInUse = true;
             }
             else
             {
@@ -125,49 +122,48 @@ public class Movement : MonoBehaviour
             //movement
             ApplyMovementLimits();
             lastPosition = transform.position;
-            transform.Translate(currentXSpeed * delta, 0, 0);
-            transform.Translate(0, currentYSpeed * delta, 0);
+            transform.Translate(currentXSpeed * delta, currentYSpeed * delta, 0);
         }
     }
 
     void MovementOnX()
     {
         float xAxis = Input.GetAxis("Horizontal");
-        if(!onFloor) 
+        if(!onFloor) //Movement while on air
         { 
-            xAxis = xAxis * .6f;
             if (xAxis > 0)
             {
                 if (currentXSpeed < 0)
                 {
-                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                    currentXSpeed += moveSpeed * xAxis * airMovementPenalty * delta;
                 }
-                else if (currentXSpeed < maxSpeed)
+                else if (currentXSpeed < maxAirSpeed)
                 {
-                    currentXSpeed += moveSpeed * xAxis * delta;
+                    currentXSpeed += moveSpeed * xAxis * airMovementPenalty * delta;
                 }
             }
             else
             {
                 if (currentXSpeed > 0)
                 {
-                    currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
+                    currentXSpeed += moveSpeed * xAxis * airMovementPenalty * delta;
                 }
-                else if (currentXSpeed < maxSpeed)
+                else if (currentXSpeed > -maxAirSpeed)
                 {
-                    currentXSpeed += moveSpeed * xAxis * delta;
+                    currentXSpeed += moveSpeed * xAxis * airMovementPenalty * delta;
                 }
             }
+            //Max speed limit check
             if (currentXSpeed >= maxAirSpeed)
             {
-                currentXSpeed = maxSpeed * xAxis;
+                currentXSpeed = maxAirSpeed * xAxis;
             }
             else if (currentXSpeed <= -maxAirSpeed)
             {
-                currentXSpeed = maxSpeed * xAxis;
+                currentXSpeed = maxAirSpeed * xAxis;
             }
         }
-        else
+        else //Movement when standing on floor
         {
             if (xAxis > 0)
             {
@@ -186,11 +182,12 @@ public class Movement : MonoBehaviour
                 {
                     currentXSpeed += moveSpeed * 1.5f * xAxis * delta;
                 }
-                else if (currentXSpeed < maxSpeed)
+                else if (currentXSpeed > -maxSpeed)
                 {
                     currentXSpeed += moveSpeed * xAxis * delta;
                 }
             }
+            //Max speed limit check
             if (currentXSpeed >= maxSpeed)
             {
                 currentXSpeed = maxSpeed * xAxis;
@@ -202,7 +199,7 @@ public class Movement : MonoBehaviour
         }
     }
 
-    void StopMovement()
+    void StopMovement() //When player is not pressing horizontal axis, apply force to stop the movement
     {
         float direction = 0;
         if(transform.position.x > lastPosition.x)
@@ -214,19 +211,31 @@ public class Movement : MonoBehaviour
             direction = -1;
         }
 
-        if (!onFloor) { direction = direction * .5f; }
-
-        if (currentXSpeed <= .05f && currentXSpeed >= -.05f)
-        {
-            currentXSpeed = 0;
+        if (onFloor) 
+        { 
+            if (currentXSpeed <= .05f && currentXSpeed >= -.05f)
+            {
+                currentXSpeed = 0;
+            }
+            else
+            {
+                currentXSpeed -= moveSpeed * 1.5f * direction * delta;
+            } 
         }
-        else
+        else if (!onFloor)
         {
-            currentXSpeed -= moveSpeed * 1.5f * direction * delta;
+            if (currentXSpeed <= .05f && currentXSpeed >= -.05f)
+            {
+                currentXSpeed = 0;
+            }
+            else
+            {
+                currentXSpeed -= moveSpeed * airMovementPenalty * direction * delta;
+            } 
         }
     }
 
-    void Gravity()
+    void Gravity() //Applied every frame when not standing on floor
     {
         if (!onFloor)
         {
@@ -244,33 +253,38 @@ public class Movement : MonoBehaviour
 
     void Jump()
     {
-        if (onFloor && !jumping && !jumpInUse)
+        //Initial jump push
+        if (CheckForJump() && !jumping && !jumpInUse)
         {
+            jumpInUse = true;
             transform.position = new Vector2(transform.position.x, transform.position.y + .003f);
             currentYSpeed = jumpStartSpeed;
             jumping = true;
             jumpForceApplied = 0;
             JumpSound();
         }
+        //Aditional force if player holds jump axis
         if (jumping && maxJumpForce > jumpForceApplied + (jumpStaySpeed * delta))
         {
             jumpForceApplied += jumpStaySpeed * delta;
             currentYSpeed += jumpStaySpeed * delta;
         }
+        //Add remaining force if player is still holding jump
         else if (jumping && maxJumpForce > jumpForceApplied)
         {
             float remainingForce = maxJumpForce - jumpForceApplied;
             jumpForceApplied += remainingForce;
             currentYSpeed += remainingForce;
+            jumping = false;
         }
     }
 
-    void ApplyMovementLimits()
+    void ApplyMovementLimits() //If walls or ceiling is detected, stop movement towards them
     {
         if (rightWall && currentXSpeed > 0 && !onFloor && currentYSpeed <=0)
         {
             currentXSpeed = 0;
-            WallGrab();
+            WallGrab(); //Do wall grab if player is walking towards the wall and not standing on floor
         }
         else if (rightWall && currentXSpeed > 0)
         {
@@ -279,7 +293,7 @@ public class Movement : MonoBehaviour
         if (leftWall && currentXSpeed < 0 && !onFloor && currentYSpeed <= 0)
         {
             currentXSpeed = 0;
-            WallGrab();
+            WallGrab(); //Do wall grab if player is walking towards the wall and not standing on floor
         }
         else if (leftWall && currentXSpeed < 0)
         {
@@ -292,7 +306,7 @@ public class Movement : MonoBehaviour
 
     }
 
-    void WallGrab()
+    void WallGrab() //Reduce falling speed
     {
         currentYSpeed += wallGrabFriction * delta;
 
@@ -302,14 +316,14 @@ public class Movement : MonoBehaviour
         }
     }
 
-    void WallJump()
+    void WallJump() //Can be done when near a wall
     {
         if (!onFloor && !jumpInUse && !wallJumping)
         {
+            jumpInUse = true;
             wallJumpDirection = CheckBothWalls();
             if(wallJumpDirection > 0 || wallJumpDirection < 0)
             {
-                //transform.position = new Vector2(transform.position.x * wallJumpDirection, transform.position.y);
                 currentXSpeed = wallJumpStartXForce * wallJumpDirection;
                 wallJumpXForceApplied = 0;
                 currentYSpeed = wallJumpStartYForce;
@@ -390,6 +404,30 @@ public class Movement : MonoBehaviour
         {
             adjustedToFloor = false;
             animator.SetBool("walking", false);
+            return false;
+        }
+    }
+
+    bool CheckForJump()//Only to check if you can jump, its different from the normal floor check to make the input feel more responsive
+    {
+        LayerMask mask;
+        mask = (1 << 6);
+
+        Vector2 centerRayPos = new Vector2(transform.position.x, transform.position.y);
+        Vector2 leftRayPos = new Vector2(transform.position.x - .035f, transform.position.y);
+        Vector2 rightRayPos = new Vector2(transform.position.x + .035f, transform.position.y);
+
+        //Centro, izquierda y derecha
+        RaycastHit2D hitC = Physics2D.Raycast(centerRayPos, Vector2.down, .09f, mask);
+        RaycastHit2D hitL = Physics2D.Raycast(leftRayPos, Vector2.down, .09f, mask);
+        RaycastHit2D hitR = Physics2D.Raycast(rightRayPos, Vector2.down, .09f, mask);
+
+        if (hitC || hitL || hitR)
+        {
+            return true;
+        }
+        else
+        {
             return false;
         }
     }
